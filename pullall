@@ -1,27 +1,32 @@
 #!/bin/bash
-tag='pulling.please-wait'
-touch $tag
-WD=$(pwd)
 
-for hgrepo in $(ls -d *-hg);
-do
-  echo "hg:$hgrepo"
+(
+  flock -n 9 || exit 1
+
+  WD=$(pwd)
+
+  for hgrepo in $(ls -d *-hg);
+  do
+  echo "****hg:$hgrepo"
   cd $hgrepo && hg pull && hg update
   cd $WD
-done
+  done
 
-for gitrepo in $(ls -d *-git);
-do
-  echo "git:$gitrepo"
+  for gitrepo in $(ls -d *-git);
+  do
+  echo "****git:$gitrepo"
   cd $gitrepo && git pull
   cd $WD
-done
+  done
 
-for svnrepo in $(ls -d *-svn);
-do
-  echo "svn:$svnrepo"
+  for svnrepo in $(ls -d *-svn);
+  do
+  echo "****svn:$svnrepo"
   cd $svnrepo && svn update
   cd $WD
-done
-rm -f $tag
-echo $(date) >>pullall.history
+  done
+
+  echo $(date) >>pullall.history
+
+) 9>pullall.lock
+
