@@ -5,28 +5,28 @@
 
   WD=$(pwd)
 
-  for hgrepo in $(ls -d *-hg);
+  for hgrepo in $(ls -d *-hg 2>/dev/null);
   do
   echo "****hg:$hgrepo"
   cd $hgrepo && hg pull && hg update
   cd $WD
   done
 
-  for gitrepo in $(ls -d *-git);
+  for gitrepo in $(ls -d *-git 2>/dev/null);
   do
   echo "****git:$gitrepo"
   cd $gitrepo && git pull
   cd $WD
   done
 
-  for svnrepo in $(ls -d *-svn);
+  for svnrepo in $(ls -d *-svn 2>/dev/null);
   do
   echo "****svn:$svnrepo"
   cd $svnrepo && svn update
   cd $WD
   done
 
-  for cvsrepo in $(ls -d *-cvs);
+  for cvsrepo in $(ls -d *-cvs 2>/dev/null);
   do
   echo "****cvs:$cvsrepo"
   cd $cvsrepo && cvs update
