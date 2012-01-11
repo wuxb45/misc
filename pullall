@@ -26,6 +26,13 @@
   cd $WD
   done
 
+  for cvsrepo in $(ls -d *-cvs);
+  do
+  echo "****cvs:$cvsrepo"
+  cd $cvsrepo && cvs update
+  cd $WD
+  done
+
   echo $(date) >>pullall.history
 
 ) 9>pullall.lock
