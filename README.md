@@ -35,9 +35,9 @@ I also add pullall to crond:
 
     0 9,17 * * * cd $HOME/repo && ./pullall >> pullall.history
 
-ServDir
+hfs
 --------
-"Serving My Documents"
+"haskell file server"
 
 I use some different documents: ghc+cabal, python, etc..
 Serve them through a http server is very interesting.
