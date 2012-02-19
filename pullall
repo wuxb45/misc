@@ -1,39 +1,98 @@
 #!/bin/bash
+#copyright 2012 Wu Xingbo <wuxb45@gmail.com>
+#pullall: pull from git/hg/svn/cvs/darcs repository.
+
+blacklist=$(cat pullall.blacklist)
+WD=$(pwd)
+
+function blacklist-check ()
+{
+  if [ -z "$blacklist" ]; then
+    return 0
+  fi
+  for black in $blacklist;
+  do
+    if [ $black == $1 ]; then
+      return 1
+    fi
+  done
+  return 0
+}
 
 (
   flock -n 9 || exit 1
 
-  WD=$(pwd)
+  ping -q -c 4 8.8.8.8 &>/dev/null
+  if [ $? -ne 0 ]; then
+    echo "network failed, abort."
+    exit 0
+  fi
 
-  for hgrepo in $(ls -d *-hg 2>/dev/null);
+  echo "start   @ $(date)" >>pullall.history
+  echo "start   @ $(date)"
+
+  for hg_repo in $(ls -d *-hg 2>/dev/null);
   do
-  echo "****hg:$hgrepo"
-  cd $hgrepo && hg pull && hg update
-  cd $WD
+    blacklist-check "$hg_repo"
+    if [ $? -eq 0 ]; then
+      echo "****hg:$hg_repo"
+      cd $hg_repo && hg pull && hg update
+      cd $WD
+    else
+      echo "****skip $hg_repo"
+    fi
   done
 
-  for gitrepo in $(ls -d *-git 2>/dev/null);
+  for git_repo in $(ls -d *-git 2>/dev/null);
   do
-  echo "****git:$gitrepo"
-  cd $gitrepo && git pull
-  cd $WD
+    blacklist-check "$git_repo"
+    if [ $? -eq 0 ]; then
+      echo "****git:$git_repo"
+      cd $git_repo && git pull
+      cd $WD
+    else
+      echo "****skip $git_repo"
+    fi
   done
 
-  for svnrepo in $(ls -d *-svn 2>/dev/null);
+  for svn_repo in $(ls -d *-svn 2>/dev/null);
   do
-  echo "****svn:$svnrepo"
-  cd $svnrepo && svn update
-  cd $WD
+    blacklist-check "$svn_repo"
+    if [ $? -eq 0 ]; then
+      echo "****svn:$svn_repo"
+      cd $svn_repo && svn update
+      cd $WD
+    else
+      echo "****skip $svn_repo"
+    fi
   done
 
-  for cvsrepo in $(ls -d *-cvs 2>/dev/null);
+  for cvs_repo in $(ls -d *-cvs 2>/dev/null);
   do
-  echo "****cvs:$cvsrepo"
-  cd $cvsrepo && cvs update
-  cd $WD
+    blacklist-check "$cvs_repo"
+    if [ $? -eq 0 ]; then
+      echo "****cvs:$cvs_repo"
+      cd $cvs_repo && cvs update
+      cd $WD
+    else
+      echo "****skip $cvs_repo"
+    fi
   done
 
-  echo $(date) >>pullall.history
+  for darcs_repo in $(ls -d *-darcs 2>/dev/null);
+  do
+    blacklist-check "$darcs_repo"
+    if [ $? -eq 0 ]; then
+      echo "****darcs:$darcs_repo"
+      cd $darcs_repo && darcs pull
+      cd $WD
+    else
+      echo "****skip $darcs_repo"
+    fi
+  done
+
+  echo "finished@ $(date)" >>pullall.history
+  echo "finished@ $(date)"
 
 ) 9>pullall.lock
 
