@@ -1,0 +1,280 @@
+#!/bin/bash
+# vim: fdm=marker
+# copyright 2012 吴兴博(Wu Xingbo) <wuxb45@gmail.com>
+# this is a script for building cross-tools.
+#
+# changelog:2012-3-15:
+#   special hacks for powerpc-linux-gnu
+#   update to gcc-4.6.3, gdb-7.4, glibc-2.14.1
+
+# set files, CHANGE your URL/PKG here {{{
+
+gnu_mirror="http://mirrors.ustc.edu.cn/gnu"
+
+# if you have download the packages, just put it around me.
+binutils="binutils-2.22"
+binutils_mirror="$gnu_mirror"/binutils
+
+gcc="gcc-4.6.3"
+gcc_mirror="$gnu_mirror"/gcc
+
+libc="glibc-2.14.1"
+libc_mirror="$gnu_mirror"/glibc
+
+gdb="gdb-7.4"
+gdb_mirror="$gnu_mirror"/gdb
+
+# }}}
+
+# helper functions {{{
+function exit_on_fail ()
+{
+  if [ "$1" -ne 0 ]; then
+    echo "exit with failure $1"
+    exit $1
+  fi
+}
+
+function print_usage ()
+{
+  echo "usage:"
+  echo "       $0 powerpc-linux-gnu <prefix>"
+}
+
+# }}}
+
+# check args and prepare {{{
+if [ $# != 2 ]; then
+  print_usage
+  exit 0
+fi
+
+# target: mmix mipsel powerpc ... see gcc manual
+# target: powerpc-linux-gnu
+target=$1
+prefix=$2
+cores=$(cat /proc/cpuinfo | grep 'model name' | wc -l)
+pjobs=$(($cores + 2))
+
+dir0=$(pwd)
+export TARGET=$target
+export PREFIX=$prefix
+mkdir -p $PREFIX
+export PATH=$PREFIX/bin:$PATH
+
+# }}}
+
+# glue some useful parameters {{{
+
+binutils_pkg="$binutils".tar.bz2
+binutils_bdir="$binutils"-build
+binutils_url="$binutils_mirror"/"$binutils_pkg"
+
+gcc_pkg="$gcc".tar.bz2
+gcc_bdir="$gcc"-build
+gcc_url="$gcc_mirror"/"$gcc"/"$gcc_pkg"
+
+libc_pkg="$libc".tar.xz
+libc_bdir="$libc"-build
+libc_url="$libc_mirror"/"$libc_pkg"
+
+gdb_pkg="$gdb".tar.bz2
+gdb_bdir="$gdb"-build
+gdb_url="$gdb_mirror"/"$gdb_pkg"
+
+# do some clean-up
+#rm -rf "$binutils" "$binutils_bdir"
+#rm -rf "$gcc" "$gcc_bdir"
+#rm -rf "$libc" "$libc_bdir"
+#rm -rf "$gdb" "$gdb_bdir"
+
+# }}}
+
+# check for packages {{{
+function prepare_package ()
+{
+  pkgname=$1
+  pkg=$2
+  url=$3
+  echo "checking for $pkgname"
+  if [ -f $pkg ]; then
+    echo "Found $pkgname : $pkg"
+    return 0
+  elif [ $url ]; then
+    echo "Get $pkgname from $url"
+    wget -O $pkg $url
+    dlresult=$?
+    if [ "$dlresult" -ne 0 ]; then
+      rm -f $pkg
+    fi
+    return $dlresult
+  else
+    echo "No url or package for [[$pkgname]], abort."
+    return 1
+  fi
+}
+
+
+prepare_package 'binutils' "$binutils_pkg" "$binutils_url"
+exit_on_fail $?
+prepare_package 'gcc' "$gcc_pkg" "$gcc_url"
+exit_on_fail $?
+prepare_package 'newlib' "$libc_pkg" "$libc_url"
+exit_on_fail $?
+prepare_package 'gdb' "$gdb_pkg" "$gdb_url"
+exit_on_fail $?
+
+# }}}
+
+# extract files {{{
+
+function extract_pkg ()
+{
+  pkgname=$1
+  pkgdir=$pkgname
+  pkg=$2
+  if [ -d $pkgdir ]; then
+    echo "not extract $pkgname"
+    return 0
+  else
+    echo "Extracting $pkgname"
+    tar -xf $pkg
+    return $?
+  fi
+}
+
+
+# }}}
+
+# build binutils {{{
+
+extract_pkg "$binutils" "$binutils_pkg"
+exit_on_fail $?
+
+if [[ -z $(cat now | grep 'binutils-done') ]]; then
+  mkdir $binutils_bdir
+  cd $binutils_bdir
+  ../$binutils/configure --target=$TARGET --prefix=$PREFIX
+  exit_on_fail $?
+  make all -j"$pjobs"
+  exit_on_fail $?
+  make install
+  exit_on_fail $?
+  cd $dir0
+  echo 'binutils-done' >> now
+fi
+
+# }}}
+
+gccopts=' --disable-libquadmath --disable-libgomp --disable-libmudflap --with-gnu-as --with-gnu-ld --disable-libssp --enable-languages=c --disable-shared --disable-multilib '
+
+# build gcc stage 1 {{{
+
+extract_pkg "$gcc" "$gcc_pkg"
+exit_on_fail $?
+
+if [[ -z $(cat now | grep 'gcc-s1-done') ]]; then
+  mkdir -p $gcc_bdir
+  cd $gcc_bdir
+  ../$gcc/configure --target=$TARGET --prefix=$PREFIX --without-headers $gccopts
+  exit_on_fail $?
+  make all-gcc -j"$pjobs"
+  exit_on_fail $?
+  make install-gcc
+  exit_on_fail $?
+  cd $dir0
+  echo 'gcc-s1-done' >> now
+fi
+
+# }}}
+
+# hack 1 {{{
+if [[ $TARGET == 'powerpc-linux-gnu' ]]; then
+  mkdir -p "$PREFIX"/etc
+  touch "$PREFIX"/etc/ld.so.conf
+fi
+# }}}
+
+# build libc {{{
+
+extract_pkg "$libc" "$libc_pkg"
+exit_on_fail $?
+
+if [[ -z $(cat now | grep 'libc-done') ]]; then
+  mkdir -p $libc_bdir
+  cd $libc_bdir
+  ../$libc/configure --target=$TARGET --prefix=$PREFIX
+  exit_on_fail $?
+  make all -j"$pjobs"
+  exit_on_fail $?
+  make install
+  exit_on_fail $?
+  cd $dir0
+  echo 'libc-done' >> now
+fi
+
+# }}}
+
+# hack 2 {{{
+if [[ $TARGET == 'powerpc-linux-gnu' ]]; then
+  if [[ -a $PREFIX/$TARGET/include ]]; then
+    echo 'no hack 2 include'
+  else
+    echo 'do hack 2 include'
+    ln -s $PREFIX/include $PREFIX/$TARGET/include
+  fi
+
+  if [[ -a $PREFIX/include/gnu/stubs-32.h ]]; then
+    echo 'no hack 2 stubs-32'
+  else
+    echo 'do hack 2 stubs-32'
+    ln -s $PREFIX/include/gnu/stubs-64.h $PREFIX/include/gnu/stubs-32.h
+  fi
+fi
+# }}}
+
+# build gcc stage 2 {{{
+
+if [[ -z $(cat now | grep 'gcc-s2-done') ]]; then
+  mkdir -p $gcc_bdir
+  cd $gcc_bdir
+  ../$gcc/configure --target=$TARGET --prefix=$PREFIX $gccopts
+  exit_on_fail $?
+  make all -j"$pjobs"
+  exit_on_fail $?
+  make install
+  exit_on_fail $?
+  cd $dir0
+  echo 'gcc-s2-done' >> now
+fi
+
+# }}}
+
+# build gdb {{{
+
+extract_pkg "$gdb" "$gdb_pkg"
+exit_on_fail $?
+
+if [[ -z $(cat now | grep 'gdb-done') ]]; then
+  mkdir -p "$gdb_bdir"
+  cd "$gdb_bdir"
+  ../$gdb/configure --target=$TARGET --prefix=$PREFIX
+  exit_on_fail $?
+  make all -j"$pjobs"
+  exit_on_fail $?
+  make install
+  exit_on_fail $?
+  cd $dir0
+  echo 'gdb-done' >> now
+fi
+
+# }}}
+
+# done {{{
+if [[ -z $(cat now | grep 'all-done') ]]; then
+  echo "ALL DONE! Cons!"
+  echo 'all-done' >> now
+else
+  echo 'nothing to do...'
+fi
+# }}}
