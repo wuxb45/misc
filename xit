@@ -2,21 +2,28 @@
 # vim: fdm=marker
 # copyright 2012 吴兴博(Wu Xingbo) <wuxb45@gmail.com>
 # this is a script for building cross-tools.
+#
+# changelog:2012-3-15:
+#   update to gcc-4.6.3, gdb-7.4
 
 # set files, CHANGE your URL/PKG here {{{
 
+gnu_mirror="http://mirrors.ustc.edu.cn/gnu"
+newlib_mirror="ftp://sources.redhat.com/pub"
+
 # if you have download the packages, just put it around me.
 binutils="binutils-2.22"
-binutils_mirror=http://mirror.bjtu.edu.cn/gnu/binutils
+binutils_mirror="$gnu_mirror"/binutils
 
-gcc="gcc-4.6.2"
-gcc_mirror=http://mirror.bjtu.edu.cn/gnu/gcc
+gcc="gcc-4.6.3"
+gcc_mirror="$gnu_mirror"/gcc
 
 libc="newlib-1.20.0"
-libc_mirror=ftp://sources.redhat.com/pub/newlib
+libc_mirror="$newlib_mirror"/newlib
+#libc_mirror="$gnu_mirror"/glibc
 
-gdb="gdb-7.3.1"
-gdb_mirror=http://mirror.bjtu.edu.cn/gnu/gdb
+gdb="gdb-7.4"
+gdb_mirror="$gnu_mirror"/gdb
 
 # }}}
 
@@ -52,11 +59,10 @@ pjobs=$(($cores + 2))
 dir0=$(pwd)
 export TARGET=$target
 export PREFIX=$prefix
-mkdir -p $PREFIX
-export PATH=$PREFIX/bin:$PATH
+mkdir -p ${PREFIX}
+export PATH=${PREFIX}/bin:$PATH
 
 # }}}
-
 
 # glue some useful parameters {{{
 
@@ -75,12 +81,6 @@ libc_url="$libc_mirror"/"$libc_pkg"
 gdb_pkg="$gdb".tar.bz2
 gdb_bdir="$gdb"-build
 gdb_url="$gdb_mirror"/"$gdb_pkg"
-
-# do some clean-up
-#rm -rf "$binutils" "$binutils_bdir"
-#rm -rf "$gcc" "$gcc_bdir"
-#rm -rf "$libc" "$libc_bdir"
-#rm -rf "$gdb" "$gdb_bdir"
 
 # }}}
 
@@ -137,92 +137,132 @@ function extract_pkg ()
   fi
 }
 
-extract_pkg "$binutils" "$binutils_pkg"
-exit_on_fail $?
-extract_pkg "$gcc" "$gcc_pkg"
-exit_on_fail $?
-extract_pkg "$libc" "$libc_pkg"
-exit_on_fail $?
-extract_pkg "$gdb" "$gdb_pkg"
-exit_on_fail $?
-
 # }}}
 
 # build binutils {{{
 
-tar -xf $binutils_pkg
+extract_pkg "$binutils" "$binutils_pkg"
 exit_on_fail $?
-mkdir $binutils_bdir
-cd $binutils_bdir
-../$binutils/configure --target=$TARGET --prefix=$PREFIX
-exit_on_fail $?
-make all -j"$pjobs"
-exit_on_fail $?
-make install
-exit_on_fail $?
-cd $dir0
 
+if [[ -z $(cat now | grep 'binutils-done') ]]; then
+  mkdir $binutils_bdir
+  cd $binutils_bdir
+  ../$binutils/configure --target=${TARGET} --prefix=${PREFIX}
+  exit_on_fail $?
+  make all -j"$pjobs"
+  exit_on_fail $?
+  make install
+  exit_on_fail $?
+  cd $dir0
+  echo 'binutils-done' >> now
+fi
+
+# }}}
+
+# gcc opts {{{
+gccopts=" \
+ --disable-libquadmath \
+ --disable-libgomp \
+ --disable-libmudflap \
+ --with-gnu-as \
+ --with-gnu-ld \
+ --disable-libssp \
+ --enable-languages=c \
+ --disable-shared \
+ --disable-multilib \
+ --with-newlib \
+ --disable-threads \
+ --disable-tls \
+ --disable-decimal-float \
+ --disable-__cxa_atexit \
+ --disable-target-optspace \
+ "
 # }}}
 
 # build gcc stage 1 {{{
 
-tar -xf $gcc_pkg
+extract_pkg "$gcc" "$gcc_pkg"
 exit_on_fail $?
-mkdir $gcc_bdir
-cd $gcc_bdir
-../$gcc/configure --target=$TARGET --prefix=$PREFIX --without-headers --with-newlib  --with-gnu-as --with-gnu-ld
-exit_on_fail $?
-make all-gcc -j"$pjobs"
-exit_on_fail $?
-make install-gcc
-exit_on_fail $?
-cd $dir0
+
+if [[ -z $(cat now | grep 'gcc-s1-done') ]]; then
+  mkdir -p $gcc_bdir
+  cd $gcc_bdir
+  ../$gcc/configure --target=${TARGET} --prefix=${PREFIX} --without-headers $gccopts
+  exit_on_fail $?
+  PATH="${PREFIX}"/bin:"$PATH" make all-gcc -j"$pjobs"
+  exit_on_fail $?
+  PATH="${PREFIX}"/bin:"$PATH" make all-target-libgcc -j"$pjobs"
+  exit_on_fail $?
+  PATH="${PREFIX}"/bin:"$PATH" make install-gcc
+  exit_on_fail $?
+  cd $dir0
+  echo 'gcc-s1-done' >> now
+fi
 
 # }}}
 
-# build newlib {{{
+# build libc {{{
 
-tar -xf $libc_pkg
+extract_pkg "$libc" "$libc_pkg"
 exit_on_fail $?
-mkdir $libc_bdir
-cd $libc_bdir
-../$libc/configure --target=$TARGET --prefix=$PREFIX
-exit_on_fail $?
-make all -j"$pjobs"
-exit_on_fail $?
-make install
-exit_on_fail $?
-cd $dir0
+
+if [[ -z $(cat now | grep 'libc-done') ]]; then
+  mkdir -p $libc_bdir
+  cd $libc_bdir
+  ../$libc/configure --target=${TARGET} --prefix=${PREFIX}
+  exit_on_fail $?
+  PATH="${PREFIX}"/bin:"$PATH" make all -j"$pjobs"
+  exit_on_fail $?
+  PATH="${PREFIX}"/bin:"$PATH" make install
+  exit_on_fail $?
+  cd $dir0
+  echo 'libc-done' >> now
+fi
 
 # }}}
 
 # build gcc stage 2 {{{
 
-cd $gcc_bdir
-../$gcc/configure --target=$TARGET --prefix=$PREFIX --with-newlib --with-gnu-as --with-gnu-ld --disable-shared --disable-libssp
-exit_on_fail $?
-make all -j"$pjobs"
-exit_on_fail $?
-make install
-exit_on_fail $?
-cd $dir0
+if [[ -z $(cat now | grep 'gcc-s2-done') ]]; then
+  mkdir -p $gcc_bdir
+  cd $gcc_bdir
+  ../$gcc/configure --target=${TARGET} --prefix=${PREFIX} $gccopts
+  exit_on_fail $?
+  PATH="${PREFIX}"/bin:"$PATH" make all -j"$pjobs"
+  exit_on_fail $?
+  PATH="${PREFIX}"/bin:"$PATH" make install
+  exit_on_fail $?
+  cd $dir0
+  echo 'gcc-s2-done' >> now
+fi
 
 # }}}
 
 # build gdb {{{
 
-tar -xf "$gdb_pkg" 
+extract_pkg "$gdb" "$gdb_pkg"
 exit_on_fail $?
-mkdir "$gdb_bdir"
-cd "$gdb_bdir"
-../$gdb/configure --target=$TARGET --prefix=$PREFIX
-exit_on_fail $?
-make all -j"$pjobs"
-exit_on_fail $?
-make install
-exit_on_fail $?
-cd $dir0
+
+if [[ -z $(cat now | grep 'gdb-done') ]]; then
+  mkdir -p "$gdb_bdir"
+  cd "$gdb_bdir"
+  ../$gdb/configure --target=${TARGET} --prefix=${PREFIX}
+  exit_on_fail $?
+  PATH="${PREFIX}"/bin:"$PATH" make all -j"$pjobs"
+  exit_on_fail $?
+  PATH="${PREFIX}"/bin:"$PATH" make install
+  exit_on_fail $?
+  cd $dir0
+  echo 'gdb-done' >> now
+fi
 
 # }}}
 
-echo "ALL DONE! Cons!"
+# done {{{
+if [[ -z $(cat now | grep 'all-done') ]]; then
+  echo "ALL DONE! Cons!"
+  echo 'all-done' >> now
+else
+  echo 'nothing to do...'
+fi
+# }}}
