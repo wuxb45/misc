@@ -5,6 +5,7 @@
 blacklist=$(cat pullall.blacklist)
 WD=$(pwd)
 
+# no match -> 0, match -> 1
 function blacklist-check ()
 {
   if [ -z "$blacklist" ]; then
