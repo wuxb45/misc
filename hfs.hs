@@ -37,3 +37,14 @@ getConf ss = catMaybes $ map getConf1 ss
     getConf1 s = case break (== '=') s of
       (u,(_:p)) -> Just (u,p)
       _ -> Nothing
+
+{- ####  put this in ~/.hfsrc
+
+/usr/share/doc/ghc/html/=/usr/share/doc/ghc/html
+any=/usr/share/doc
+Python=/usr/share/doc/python/html
+gcc=/usr/share/doc/gcc
+
+#### -}
+
+-- /home/wuxb/.cabal/share/doc=/home/wuxb/.cabal/share/doc
