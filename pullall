@@ -95,5 +95,5 @@ function blacklist-check ()
   echo "finished@ $(date)" >>pullall.history
   echo "finished@ $(date)"
 
-) 9>pullall.lock
+) 9>/tmp/pullall.lock
 
