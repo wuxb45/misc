@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 import Data.Maybe
 import System.Environment (getEnv)
-import Happstack.Server
 import Control.Monad (msum)
+import Happstack.Server
 import Text.Blaze
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -23,9 +23,10 @@ appTemplate title body = H.html $ do
     H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html;charset=uft-8"
   H.body body
 
-servFileWith :: [PathConf] -> IO ()  -- 8000
-servFileWith pcs = do simpleHTTP nullConf $ msum $ withConf ++ [indexPage]
+servFileWith :: [PathConf] -> IO ()
+servFileWith pcs = do simpleHTTP conf $ msum $ withConf ++ [indexPage]
   where
+    conf = Conf 8000 Nothing Nothing 60
     entry = ["frames.html","index.html","index.htm"]
     withConf = map (\(u, p) -> dirs u $ serveDirectory EnableBrowsing entry p) pcs
     indexPage = ok $ toResponse $ appTemplate "INDEX" $ sequence_ $ map toA pcs
