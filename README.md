@@ -1,5 +1,6 @@
 Snippet
 =======
+Copyright 2011,2012 Wu Xingbo <wuxb45@gmail.com>
 
 Some useful scripts & tools.
 
@@ -43,3 +44,30 @@ I use some different documents: ghc+cabal, python, etc..
 Serve them through a http server is very interesting.
 I write my own server using happstack(Haskell), It's great!
 
+**Build from nothing:
+**ArchLinux (others are similar)
+    $ pacman -S ghc cabal-install
+    $ cabal update
+    $ cabal install happstack
+    $ ghc --make -threaded hfs.hs
+    # optional:
+    $ strip -p --strip-unneeded --remove-section=.comment -o hfs.bin hfs
+**Windows
+    "install haskell-platform from http://hackage.haskell.org/platform/"
+    > cabal update
+    > cabal install happstack
+    > ghc --make -threaded hfs.hs
+
+Droid0 Sans Mono
+--------
+"Droid-Zero Sans Mono"
+
+Droid Sans Mono font is great, but 0 (Zero) and O (a Capital Charactor)
+is hard to identify. I Just add a dot inside 0 (the Zero). make it clear.
+
+**install:
+    Copy it to "/usr/share/fonts/TTF/"
+    $ fc-cache -fv
+    then you can use it as "Droid0 Sans Mono"
+
+Wu Xingbo <wuxb45@gmail.com>
