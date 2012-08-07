@@ -56,6 +56,18 @@ function blacklist-check ()
     fi
   done
 
+  for git_repo in $(ls -d *.git 2>/dev/null);
+  do
+    blacklist-check "$git_repo"
+    if [ $? -eq 0 ]; then
+      echo "****git:$git_repo"
+      cd $git_repo && git fetch && git gc
+      cd $WD
+    else
+      echo "****skip $git_repo"
+    fi
+  done
+
   for svn_repo in $(ls -d *-svn 2>/dev/null);
   do
     blacklist-check "$svn_repo"
