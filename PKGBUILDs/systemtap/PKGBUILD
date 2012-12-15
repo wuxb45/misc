@@ -1,8 +1,7 @@
 # Maintainer: Sebastien Binet <binet@farnsworth>
 #             Wu Xingbo <wuxb45@gmail.com>
-
 pkgname=systemtap
-pkgver=1.8
+pkgver=2.0
 pkgrel=1
 pkgdesc="SystemTap provides free software (GPL) infrastructure to simplify the gathering of information about the running Linux system."
 url="http://sourceware.org/systemtap/"
@@ -12,7 +11,7 @@ depends=('elfutils' 'nss' 'python')
 makedepends=('gcc')
 optdepends=('sqlite3' 'linux-fedora')
 source=(http://sourceware.org/systemtap/ftp/releases/$pkgname-$pkgver.tar.gz)
-md5sums=('5b7ab0ae0efc520f0b19f9dbf11977c9')
+md5sums=('1dc6f1341cadc27de8732089304efcff')
 
 build() {
   cd "${srcdir}/${pkgname}-${pkgver}"
