@@ -24,9 +24,9 @@ appTemplate title body = H.html $ do
   H.body body
 
 servFileWith :: [PathConf] -> IO ()
-servFileWith pcs = do simpleHTTP conf $ msum $ withConf ++ [indexPage]
+servFileWith pcs = simpleHTTP conf $ msum $ withConf ++ [indexPage]
   where
-    conf = Conf 8000 Nothing Nothing 60
+    conf = Conf 8000 Nothing Nothing 60 Nothing
     entry = ["frames.html","index.html","index.htm"]
     withConf = map (\(u, p) -> dirs u $ serveDirectory EnableBrowsing entry p) pcs
     indexPage = ok $ toResponse $ appTemplate "INDEX" $ sequence_ $ map toA pcs
