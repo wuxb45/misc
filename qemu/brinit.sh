@@ -50,6 +50,7 @@ fi
 if [[ -z $(ip addr show dev br0 | grep '10\.0\.0\.1/8') ]]; then
   echo "==> assign 10.0.0.1/8 to br0"
   ip addr add 10.0.0.1/8 dev br0
+  ip link set dev br0 up
 else
   echo "==| found br0 ip"
 fi
