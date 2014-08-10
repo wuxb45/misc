@@ -1,4 +1,9 @@
 #!/bin/bash
+if [[ $(whoami) != 'root' ]]; then
+  echo "==! need root to execute"
+  exit 0
+fi
+
 fail=
 check_cmd ()
 {
