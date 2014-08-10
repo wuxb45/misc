@@ -37,7 +37,7 @@ if [[ ! $(sysctl net.ipv4.ip_forward | egrep '.*=.*1$') ]]; then
   echo "==> set ip_forward"
   sysctl net.ipv4.ip_forward=1
 else
-  echo "==| ip_forward already set"
+  echo "==| ip_forward is already set"
 fi
 
 if [[ -z $(brctl show | grep '^br0') ]]; then
@@ -47,8 +47,15 @@ else
   echo "==| br0 exists"
 fi
 
+if [[ -z $(ip addr show dev br0 | grep '10\.0\.0\.1/8') ]]; then
+  echo "==> assign 10.0.0.1/8 to br0"
+  ip addr add 10.0.0.1/8 dev br0
+else
+  echo "==| br0 ip is already set"
+fi
+
 if [[ -z $(iptables --list | egrep '^ACCEPT.*PHYSDEV.*--physdev-is-bridged') ]]; then
-  echo "==> add iptables rule"
+  echo "==> add accept-bridge iptables rule"
   iptables -I FORWARD -m physdev --physdev-is-bridged -j ACCEPT
 else
   echo "==| iptables rule exists"
