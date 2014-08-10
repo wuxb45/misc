@@ -16,6 +16,7 @@ auth="${sshdir}/authorized_keys"
 kh="${sshdir}/known_hosts"
 
 mkdir -p ${sshdir}
+chown -R ${username}:${username} ${homedir}
 
 su - ${username} -c "ssh-keygen -t ecdsa -P '' -f ${key_pri}"
 
