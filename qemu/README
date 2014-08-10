@@ -1,0 +1,14 @@
+first:
+ # ./brinit.sh   # setup prerequisites for bridged network
+
+second:
+make sure we have a base image as a VM template (base.qed)
+
+third:
+start VM(s) using start.sh:
+ $ ./start.sh  # start one vm directly on base.qed
+or
+ $ ./start.sh <n>  # start <n> VM instances each is a COW copy of base.qed
+
+-> auto-eth0.sh is used in COW guest VMs. It generates ip/hostname for each vm according to its unique macaddr.
+-> known-gen.sh is used in the base guest VM. It generates the ".ssh/known_hosts" for all VM instances.
