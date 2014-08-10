@@ -54,14 +54,17 @@ else
   echo "==| found br0 ip"
 fi
 
-outport=${1:-eth0}
-echo NAT to ${outport}
+outport=$1
+if [ -z ${outport} ]; then
+  exit 0
+fi
 
 ip link show dev ${outport} &> /dev/null
 if [ $? != 0 ]; then
   echo "==! Out port not found, skip NAT"
   exit 0
 fi
+echo NAT to ${outport}
 
 iptables_put_rule()
 {
