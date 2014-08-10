@@ -86,7 +86,6 @@ iptables_put_rule FORWARD -i br0 -o ${outport} -j ACCEPT
 
 # set NAT
 natrule="POSTROUTING -o ${outport} -j MASQUERADE"
-echo natrule: ${natrule}
 iptables -t nat -C ${natrule} 2>/dev/null
 if [ $? != 0 ]; then
   echo "==> iptables NAT: set ${natrule}"
