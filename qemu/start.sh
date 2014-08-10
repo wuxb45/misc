@@ -24,6 +24,7 @@ qemu_common="qemu-system-x86_64 -m ${msize} \
 
 gen_serial()
 {
+  ## you need to add "console=ttyS0" to guest's kernel parameters
   echo "-serial telnet:localhost:111$(printf '%02d' $1),server,nowait"
 }
 
@@ -36,14 +37,13 @@ gen_bridge()
 {
   echo "-net bridge,br=${br} -net nic,model=virtio,macaddr=52:54:00:00:00:$(printf '%02x' $1)"
 }
-# the line above intentionally left empty
 
 if [ -z $nr ]; then
   echo "Starting one qemu instance using default network"
   $qemu_common \
   $(gen_disk base.qed) \
   $(gen_serial 0) \
-    #
+  #
 else
   echo "Starting $nr qemu instances in private network"
   br=br0
