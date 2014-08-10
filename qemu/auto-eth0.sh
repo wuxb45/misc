@@ -22,6 +22,7 @@ eth0start()
   echo suffix: $suffix >> $log
   ip addr add 10.10.10.${suffix}/8 dev eth0
   ip link set eth0 up
+  ip route add default via 10.0.0.1 dev eth0
   hostname v${suf16}
 }
 
