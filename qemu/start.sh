@@ -1,9 +1,13 @@
 #!/bin/bash
-# usage :
-#   empty parameters: start base.qed
-#   <number>: start <number> COW qemu instances based on base.qed
-# get number of instances
-nr=$1
+if [[ ! $1 ]]; then
+  echo "Usage:"
+  echo "  $0 <image-file> [<nunber-of-instances>]"
+  exit 0
+fi
+
+baseqed=$1
+nr=$2
+br=br0
 if [[ ! $nr =~ ^-?[0-9]+$ ]]; then
   nr=
 elif [[ $nr -gt 250 ]]; then
@@ -11,8 +15,8 @@ elif [[ $nr -gt 250 ]]; then
   exit 0
 fi
 
-if [[ ! -e base.qed ]]; then
-  echo base.qed not found
+if [[ ! -e ${baseqed} ]]; then
+  echo ${baseqed} not found
   exit 0
 fi
 
@@ -41,16 +45,20 @@ gen_bridge()
 if [ -z $nr ]; then
   echo "Starting one qemu instance using default network"
   $qemu_common \
-  $(gen_disk base.qed) \
+  $(gen_disk ${baseqed}) \
   $(gen_serial 0) \
   #
 else
-  echo "Starting $nr qemu instances in private network"
-  br=br0
+  ip link show dev ${br} &>/dev/null
+  if [[ $? != 0 ]]; then
+    echo "${br} not found."
+    exit 0
+  fi
+  echo "Starting $nr qemu instances in private network ${br}"
   for i in $(seq 1 $nr); do
-    incr=incr${i}.qed
+    incr=${baseqed}-cow-${i}.qed
     rm -rf ${incr}
-    qemu-img create -f qed ${incr} -b base.qed
+    qemu-img create -f qed ${incr} -b ${baseqed}
     $qemu_common \
       $(gen_disk ${incr}) \
       $(gen_bridge $i) \
