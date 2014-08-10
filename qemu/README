@@ -11,4 +11,4 @@ or
  $ ./start.sh <n>  # start <n> VM instances each is a COW copy of base.qed
 
 -> auto-eth0.sh is used in COW guest VMs. It generates ip/hostname for each vm according to its unique macaddr.
--> known-gen.sh is used in the base guest VM. It generates the ".ssh/known_hosts" for all VM instances.
+-> xuser.sh generate user/password/homedir/ssh-key for a user.
