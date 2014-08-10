@@ -23,6 +23,8 @@ eth0start()
   ip addr add 10.10.10.${suffix}/8 dev eth0
   ip link set eth0 up
   ip route add default via 10.0.0.1 dev eth0
+  echo "nameserver 8.8.8.8" > /etc/resolv.conf
+  echo "nameserver 8.8.4.4" >> /etc/resolv.conf
   hostname v${suf16}
 }
 

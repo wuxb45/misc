@@ -16,13 +16,13 @@ check_cmd ()
 #### set allow br0 in /etc/qemu/bridge.conf
 qbrconf="/etc/qemu/bridge.conf"
 if [[ ! -e ${qbrconf} ]]; then
-  echo "==> qemu Set allow br0"
+  echo "==> ${qbrconf} Set allow br0"
   echo 'allow br0' > ${qbrconf}
 elif [[ -z $(grep '^allow br0$' ${qbrconf}) ]]; then
-  echo "==> qemu Add allow br0"
+  echo "==> ${qbrconf} Add allow br0"
   echo 'allow br0' >> ${qbrconf}
 else
-  echo "==| qemu allow br0 already set"
+  echo "==| found ${qbrconf} allow br0"
 fi
 
 check_cmd brctl
@@ -34,29 +34,60 @@ if [[ $fail ]]; then
 fi
 
 if [[ ! $(sysctl net.ipv4.ip_forward | egrep '.*=.*1$') ]]; then
-  echo "==> set ip_forward"
+  echo "==> set ip_forward = 1"
   sysctl net.ipv4.ip_forward=1
 else
-  echo "==| ip_forward is already set"
+  echo "==| found ip_forward = 1"
 fi
 
 if [[ -z $(brctl show | grep '^br0') ]]; then
   echo "==> add br0"
   brctl addbr br0
 else
-  echo "==| br0 exists"
+  echo "==| found br0"
 fi
 
 if [[ -z $(ip addr show dev br0 | grep '10\.0\.0\.1/8') ]]; then
   echo "==> assign 10.0.0.1/8 to br0"
   ip addr add 10.0.0.1/8 dev br0
 else
-  echo "==| br0 ip is already set"
+  echo "==| found br0 ip"
 fi
 
-if [[ -z $(iptables --list | egrep '^ACCEPT.*PHYSDEV.*--physdev-is-bridged') ]]; then
-  echo "==> add accept-bridge iptables rule"
-  iptables -I FORWARD -m physdev --physdev-is-bridged -j ACCEPT
+outport=${1:-eth0}
+echo NAT to ${outport}
+
+ip link show dev ${outport} &> /dev/null
+if [ $? != 0 ]; then
+  echo "==! Out port not found, skip NAT"
+  exit 0
+fi
+
+iptables_put_rule()
+{
+  iptables -C $* 2>/dev/null
+  if [ $? != 0 ]; then
+    echo "==> iptables: set $*"
+    iptables -I $*
+  else
+    echo "==| iptables: found $*"
+  fi
+}
+
+# allow br0
+iptables_put_rule FORWARD -m physdev --physdev-is-bridged -j ACCEPT
+
+# allow nat in/out
+iptables_put_rule FORWARD -i ${outport} -o br0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables_put_rule FORWARD -i br0 -o ${outport} -j ACCEPT
+
+# set NAT
+natrule="POSTROUTING -o ${outport} -j MASQUERADE"
+echo natrule: ${natrule}
+iptables -t nat -C ${natrule} 2>/dev/null
+if [ $? != 0 ]; then
+  echo "==> iptables NAT: set ${natrule}"
+  iptables -t nat -A ${natrule}
 else
-  echo "==| iptables rule exists"
+  echo "==| iptables NAT: found ${natrule}"
 fi
