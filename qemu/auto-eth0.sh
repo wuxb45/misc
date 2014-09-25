@@ -9,7 +9,7 @@ log=/tmp/auto-ip.log
 
 echo macaddr: $mac >> $log
 
-if [[ ! ${mac} =~ 52:54:00:00:00:[0-9a-fA-F][0-9a-fA-F] ]]; then
+if [[ ! ${mac} =~ 52:54:00:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F] ]]; then
   echo "ip not set, exit" >> $log
   exit 1
 fi
@@ -17,15 +17,18 @@ fi
 eth0start()
 {
   # set ip
-  suf16=$(echo ${mac} | awk -F: '{print $6}')
-  suffix=$(printf '%d' 0x${suf16})
-  echo suffix: $suffix >> $log
-  ip addr add 10.10.10.${suffix}/8 dev eth0
+  local suf4=$(echo ${mac} | awk -F: '{print $4}')
+  local suf5=$(echo ${mac} | awk -F: '{print $5}')
+  local suf6=$(echo ${mac} | awk -F: '{print $6}')
+  local ipaddr=$(printf '10.%d.%d.%d' 0x${suf4} 0x${suf5} 0x${suf6})
+  local hostname="v${suf4}${suf5}${suf6}"
+  echo ipaddr: $ipaddr >> $log
+  ip addr add ${ipaddr}/8 dev eth0
   ip link set eth0 up
   ip route add default via 10.0.0.1 dev eth0
   echo "nameserver 8.8.8.8" > /etc/resolv.conf
   echo "nameserver 8.8.4.4" >> /etc/resolv.conf
-  hostname v${suf16}
+  hostname ${hostname}
 }
 
 eth0stop()
