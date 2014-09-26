@@ -1,0 +1,27 @@
+[Unit]
+Description=Bridged Network connectivity (%i)
+Wants=network.target
+Before=network.target
+BindsTo=sys-subsystem-net-devices-%i.device
+After=sys-subsystem-net-devices-%i.device
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/conf.d/network@%i
+
+ExecStart=/usr/bin/brctl addbr br@%i
+ExecStart=/usr/bin/brctl addif br@%i %i
+ExecStart=/usr/bin/ip link set dev %i up
+ExecStart=/usr/bin/ip link set dev br@%i up
+ExecStart=/usr/bin/ip addr add ${address}/${netmask} dev br@%i
+ExecStart=/usr/bin/sh -c 'test -z ${gateway} || /usr/bin/ip route add default via ${gateway}'
+
+ExecStop=/usr/bin/ip addr flush dev br@%i
+ExecStop=/usr/bin/ip route flush dev br@%i
+ExecStop=/usr/bin/ip link set dev br@%i down
+ExecStop=/usr/bin/brctl delbr br@%i
+ExecStop=/usr/bin/ip link set dev %i down
+
+[Install]
+WantedBy=multi-user.target
