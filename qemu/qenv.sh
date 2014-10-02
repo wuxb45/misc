@@ -26,23 +26,30 @@ gen_disk()
 # $2: mac suffix, at most 65535
 gen_bridge()
 {
+  local mac0=${MAC0:-00}
   local mac1=$(printf '%02x' $(($2 / 256)) )
   local mac2=$(printf '%02x' $(($2 % 256)) )
-  echo "-net bridge,br=${1} -net nic,model=virtio,macaddr=52:54:00:00:${mac1}:${mac2}"
+  echo "-net bridge,br=${1} -net nic,model=virtio,macaddr=52:54:00:${mac0}:${mac1}:${mac2}"
 }
 
 # $1 new image filename
 # $2 new image format
 # $3 base image filename
 # $4 base image format
-create_cow()
+touch_cow()
 {
   if [[ $# < 4 ]]; then
     echo "usage: $0 <image> <format> <backing-image> <backing-format>"
     return 1
   fi
-  qemu-img create -f "$2" -o backing_file="$3",backing_fmt="$4" "$1"
-  return $!
+  if [[ ! -e "$1" ]]; then
+    qemu-img create -f "$2" -o backing_file="$3",backing_fmt="$4" "$1"
+    return $!
+  else
+    echo "found cow image $1"
+    qemu-img info "$1"
+    return $!
+  fi
 }
 
 # $1 memory size
@@ -58,8 +65,8 @@ boot_one()
     echo "Usage: $0 <mem-size> <unique-id> <brname> <image> <format> [<backing-image> <backing-format>]"
     return 1
   fi
-  if [[ -n $6 && -n $7 ]]; then
-    create_cow "$4" "$5" "$6" "$7"
+  if [[ -n "$6" && -n "$7" ]]; then
+    touch_cow "$4" "$5" "$6" "$7"
     if [[ $? != 0 ]]; then
       echo "create_cow failed!"
       return $?
