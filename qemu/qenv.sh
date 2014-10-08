@@ -3,7 +3,7 @@
 # $1 memory size
 gen_common()
 {
-  echo "qemu-system-x86_64 -m ${1} \
+  echo "qemu-system-x86_64 -m ${1} -smp ${2} \
   -vga none -display none -monitor none \
   -cpu host -machine accel=kvm -enable-kvm -daemonize "
 }
@@ -39,7 +39,7 @@ gen_bridge()
 touch_cow()
 {
   if [[ $# < 4 ]]; then
-    echo "usage: $0 <image> <format> <backing-image> <backing-format>"
+    echo "Usage: $0 <image> <format> <backing-image> <backing-format>"
     return 1
   fi
   if [[ ! -e "$1" ]]; then
@@ -62,15 +62,15 @@ touch_cow()
 boot_one()
 {
   if [[ $# != 5 && $# != 7 ]]; then
-    echo "Usage: $0 <mem-size> <unique-id> <brname> <image> <format> [<backing-image> <backing-format>]"
+    echo "Usage: $0 <mem-size> <nr-CPUs> <unique-id> <brname> <image> <format> [<backing-image> <backing-format>]"
     return 1
   fi
-  if [[ -n "$6" && -n "$7" ]]; then
-    touch_cow "$4" "$5" "$6" "$7"
+  if [[ -n "$7" && -n "$8" ]]; then
+    touch_cow "$5" "$6" "$7" "$8"
     if [[ $? != 0 ]]; then
-      echo "create_cow failed!"
+      echo "touch_cow failed!"
       return $?
     fi
   fi
-  $(gen_common "$1") $(gen_serial "$2") $(gen_bridge "$3" "$2") $(gen_disk "$4" "$5")
+  $(gen_common "$1" "$2") $(gen_serial "$3") $(gen_bridge "$4" "$3") $(gen_disk "$5" "$6")
 }
