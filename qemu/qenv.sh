@@ -61,7 +61,7 @@ touch_cow()
 # $7] base format
 boot_one()
 {
-  if [[ $# != 5 && $# != 7 ]]; then
+  if [[ $# != 6 && $# != 8 ]]; then
     echo "Usage: $0 <mem-size> <nr-CPUs> <unique-id> <brname> <image> <format> [<backing-image> <backing-format>]"
     return 1
   fi
