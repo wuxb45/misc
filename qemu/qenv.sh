@@ -1,25 +1,26 @@
 #!/bin/bash
 
-# $1 memory size
-gen_common()
+# $1: nr_cpus
+# $2: memory size
+gen_cpu_memory()
 {
-  echo "qemu-system-x86_64 -m ${1} -smp ${2} \
-  -vga none -display none -monitor none \
+  echo "qemu-system-x86_64 -smp ${1} -m ${2} \
+  -vga none -display none \
   -cpu host -machine accel=kvm -enable-kvm -daemonize "
 }
 
-# $1 port number: it will be added by 10000
+# $1: port number: it will be added by 10000
 gen_serial()
 {
   ## you need to add "console=ttyS0" to guest's kernel parameters
   echo "-serial telnet:localhost:$((10000 + $1)),server,nowait"
 }
 
-# $1 image file
-# $2 image format
-gen_disk()
+# $1: port number: it will be added by 20000
+gen_monitor()
 {
-  echo "-drive file=${1},if=virtio,aio=native,discard=on,format=${2}"
+  ## you need to add "console=ttyS0" to guest's kernel parameters
+  echo "-monitor telnet:localhost:$((20000 + $1)),server,nowait"
 }
 
 # $1: brname
@@ -30,6 +31,13 @@ gen_bridge()
   local mac1=$(printf '%02x' $(($2 / 256)) )
   local mac2=$(printf '%02x' $(($2 % 256)) )
   echo "-net bridge,br=${1} -net nic,model=virtio,macaddr=52:54:00:${mac0}:${mac1}:${mac2}"
+}
+
+# $1 image file
+# $2 image format
+gen_disk()
+{
+  echo "-drive file=${1},if=virtio,aio=native,discard=on,format=${2}"
 }
 
 # $1 new image filename
@@ -52,17 +60,18 @@ touch_cow()
   fi
 }
 
-# $1 memory size
-# $2 unique index (it will be used for serial and macaddr)
-# $3 brname
-# $4 image filename (or the cow filename)
-# $5 image format (or cow format)
-# [$6 base filename
-# $7] base format
+# $1: nr_cpus
+# $2: memory size
+# $3: unique index (it will be used for serial and macaddr)
+# $4: brname
+# $5: image filename (or the cow filename)
+# $6: image format (or cow format)
+# $7: base filename
+# $8: base format
 boot_one()
 {
   if [[ $# != 6 && $# != 8 ]]; then
-    echo "Usage: $0 <mem-size> <nr-CPUs> <unique-id> <brname> <image> <format> [<backing-image> <backing-format>]"
+    echo "Usage: $0 <nr-CPUs> <mem-size> <unique-id> <brname> <image> <format> [<backing-image> <backing-format>]"
     return 1
   fi
   if [[ -n "$7" && -n "$8" ]]; then
@@ -72,5 +81,5 @@ boot_one()
       return $?
     fi
   fi
-  $(gen_common "$1" "$2") $(gen_serial "$3") $(gen_bridge "$4" "$3") $(gen_disk "$5" "$6")
+  $(gen_cpu_memory "$1" "$2") $(gen_serial "$3") $(gen_monitor "$3") $(gen_bridge "$4" "$3") $(gen_disk "$5" "$6")
 }
