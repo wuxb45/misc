@@ -111,4 +111,4 @@ run_sys()
     $(gen_sys)
   fi
 }
-run_qemu
+run_sys
