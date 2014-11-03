@@ -55,6 +55,13 @@ gen_bridge()
   fi
 }
 
+gen_cdrom()
+{
+  if [[ -n ${cdrom} ]]; then
+    echo "-cdrom ${cdrom} "
+  fi
+}
+
 # main_img=
 # main_fmt=
 gen_disks()
@@ -95,7 +102,7 @@ touch_cow()
 gen_sys()
 {
   local _qemu_binary=${qemu_binary:-qemu-system-x86_64}
-  echo ${_qemu_binary} $(gen_display) $(gen_cpu_memory) $(gen_serial) $(gen_monitor) $(gen_bridge) $(gen_disks)
+  echo ${_qemu_binary} $(gen_display) $(gen_cpu_memory) $(gen_serial) $(gen_monitor) $(gen_bridge) $(gen_cdrom) $(gen_disks)
 }
 
 run_sys()
