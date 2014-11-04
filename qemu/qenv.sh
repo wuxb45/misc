@@ -77,11 +77,12 @@ gen_disks()
   done
 }
 
-# $1 new image filename
-# $2 new image format
-# $3 base image filename
-# $4 base image format
-touch_cow()
+# base_img[]
+# base_fmt[]
+# base_cap[]
+# cow_img[]
+# cow_fmt[]
+touch_imgs()
 {
   for i in $(seq 0 4); do
     if [[ -n ${base_img[${i}]} && -n ${base_fmt[${i}]} && -n ${cow_img[${i}]} && -n ${cow_fmt[${i}]} ]]; then
@@ -95,6 +96,12 @@ touch_cow()
       else
         echo "[touch_cow[$i]] Found COW image ${cow_img[${i}]}"
       fi
+    elif [[ -n ${base_img[${i}]} && -n ${base_fmt[${i}]} ]]; then
+      if [[ ! -e ${base_img[${i}]} ]]; then
+        local _base_cap=${base_cap[${i}]:-8G}
+        qemu-img create -f "${base_fmt[${i}]}" "${base_img[${i}]}" ${_base_cap}
+        [[ $? ]] && return $?
+      fi
     fi
   done
 }
@@ -107,7 +114,7 @@ gen_sys()
 
 run_sys()
 {
-  touch_cow
+  touch_imgs
   if [[ $? != 0 ]]; then
     echo "touch_cow failed!"
     return $?
