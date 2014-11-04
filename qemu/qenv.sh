@@ -51,7 +51,8 @@ gen_bridge()
     local _mac4=${mac4:-00}
     local _mac5=${mac5:-00}
     local _mac6=${mac6:-00}
-    echo "-net bridge,br=${bridge} -net nic,model=virtio,macaddr=52:54:${_mac3}:${_mac4}:${_mac5}:${_mac6} "
+    local _model=${nic_model:-virtio}
+    echo "-net bridge,br=${bridge} -net nic,model=${_model},macaddr=52:54:${_mac3}:${_mac4}:${_mac5}:${_mac6} "
   fi
 }
 
