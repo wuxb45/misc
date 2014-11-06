@@ -10,7 +10,7 @@ gen_display()
   local _local_id=${local_id:-0}
   if [[ ${display} == "none" ]]; then
     echo "-vga none -display none "
-  else
+  elif [[ ${display} == "vnc" ]]; then
     echo "-vga vmware -display vnc=0.0.0.0:${_local_id} "
   fi
 }
