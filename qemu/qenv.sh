@@ -1,6 +1,20 @@
 #!/bin/bash
-if [[ -e "${1}" ]]; then
-  . ${1}
+case ${1} in
+run)
+  dowhat=run_sys
+  ;;
+gen)
+  dowhat=gen_sys
+  ;;
+*)
+  echo "usage: $0 {run|gen} <config-file>"
+  exit 0
+esac
+
+if [[ -e "${2}" ]]; then
+  . ${2}
+else
+  echo "## empty configuration"
 fi
 
 # local_id=0-n
@@ -134,4 +148,5 @@ run_sys()
     $(gen_sys)
   fi
 }
-run_sys
+
+$dowhat
