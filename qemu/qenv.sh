@@ -89,11 +89,12 @@ gen_cdrom()
 gen_disks()
 {
   for i in $(seq 0 4); do
+    local cache=${cache_mode[${i}]:-writeback}
     if [[ -n ${base_img[${i}]} && -n ${base_fmt[${i}]} ]]; then
       if [[ -n ${cow_img[${i}]} && -n ${cow_fmt[${i}]} ]]; then
-        echo "-drive file=${cow_img[${i}]},if=virtio,aio=native,discard=on,format=${cow_fmt[${i}]} "
+        echo "-drive file=${cow_img[${i}]},if=virtio,aio=native,discard=on,format=${cow_fmt[${i}]},cache=${cache} "
       else
-        echo "-drive file=${base_img[${i}]},if=virtio,aio=native,discard=on,format=${base_fmt[${i}]} "
+        echo "-drive file=${base_img[${i}]},if=virtio,aio=native,discard=on,format=${base_fmt[${i}]},cache=${cache} "
       fi
     fi
   done
