@@ -2,14 +2,6 @@
 
 wgetopts="-q --keep-session-cookies --load-cookies /tmp/tmp-${USER}-cookies.txt --save-cookies /tmp/tmp-${USER}-cookies.txt"
 
-# > ids
-get_ids_of_page()
-{
-  url="$1"
-  wget $wgetopts "$url" -O base.page
-  grep "PDF" base.page | sed -n -e 's/^.*arnumber=\([0-9]*\).*$/\1/p' >> ids
-}
-
 get_pdf_by_id()
 {
   id=$1
@@ -31,12 +23,8 @@ get_pdf_by_id()
 }
 
 # main
-if [[ $1 ]]; then
-  echo get ids!
-  get_ids_of_page "$1"
+if [[ -n ${1} ]]; then
+  get_pdf_by_id ${1}
 else
-  echo download then!
-  for id in $(cat ids); do
-    get_pdf_by_id $id
-  done
+  echo "usage $0 <arnumber>"
 fi
