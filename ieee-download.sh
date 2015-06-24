@@ -2,7 +2,7 @@
 
 wgetopts="-q --keep-session-cookies --load-cookies /tmp/tmp-${USER}-cookies.txt --save-cookies /tmp/tmp-${USER}-cookies.txt"
 
-get_pdf_by_id()
+get_ieee_pdf_by_id()
 {
   id=$1
   pagefile=${id}.page
@@ -24,7 +24,7 @@ get_pdf_by_id()
 
 # main
 if [[ -n ${1} ]]; then
-  get_pdf_by_id ${1}
+  get_ieee_pdf_by_id ${1}
 else
   echo "usage $0 <arnumber>"
 fi

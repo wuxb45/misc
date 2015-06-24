@@ -27,5 +27,5 @@ get_acm_pdf_by_id()
 if [[ -n ${1} ]]; then
   get_acm_pdf_by_id ${1}
 else
-  echo "usage $0 <arnumber>"
+  echo "usage $0 <id>"
 fi
