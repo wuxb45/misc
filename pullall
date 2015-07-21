@@ -2,110 +2,62 @@
 #copyright 2012 Wu Xingbo <wuxb45@gmail.com>
 #pullall: pull from git/hg/svn/cvs/darcs repository.
 
-blacklist=$(cat pullall.blacklist)
+blacklist=$(cat pullall.blacklist 2>/dev/null)
 WD=$(pwd)
 
 # no match -> 0, match -> 1
-function blacklist-check ()
+bcheck ()
 {
-  if [ -z "$blacklist" ]; then
+  if [[ -z "$blacklist" ]]; then
     return 0
   fi
   for black in $blacklist;
   do
-    if [ $black == $1 ]; then
+    if [[ $black == $1 ]]; then
       return 1
     fi
   done
   return 0
 }
 
+# $1: dirname
+pulldir ()
+{
+  local dir="${1}"
+  bcheck "${dir}"
+  if [[ $? -eq 0 ]]; then
+    echo "#### Updating [${dir}]"
+    if [[ -d "${dir}/.git" ]]; then
+      cd "${dir}" && git pull
+      cd ${WD}
+    elif [[ -d "${dir}/.svn" ]]; then
+      cd "${dir}" && svn update
+      cd ${WD}
+    elif [[ -d "${dir}/.hg" ]]; then
+      cd "${dir}" && hg pull && hg update
+      cd ${WD}
+    else
+      echo "#### Ignoring ${dir}"
+    fi
+  else
+    echo "#### Skipping ${dir} (blacklist)"
+  fi
+}
+
 (
   flock -n 9 || exit 1
-
   ping -q -c 4 8.8.8.8 &>/dev/null
-  if [ $? -ne 0 ]; then
+  if [[ $? -ne 0 ]]; then
     echo "network failed, abort."
     exit 0
   fi
 
-  echo "start   @ $(date)" >>pullall.history
-  echo "start   @ $(date)"
-
-  for hg_repo in $(ls -d *-hg 2>/dev/null);
+  echo "start   @ $(date)" | tee -a pullall.history
+  for repo in $(ls 2>/dev/null);
   do
-    blacklist-check "$hg_repo"
-    if [ $? -eq 0 ]; then
-      echo "****hg:$hg_repo"
-      cd $hg_repo && hg pull && hg update
-      cd $WD
-    else
-      echo "****skip $hg_repo"
-    fi
+    pulldir "${repo}"
   done
-
-  for git_repo in $(ls -d *-git 2>/dev/null);
-  do
-    blacklist-check "$git_repo"
-    if [ $? -eq 0 ]; then
-      echo "****git:$git_repo"
-      cd $git_repo && git pull
-      cd $WD
-    else
-      echo "****skip $git_repo"
-    fi
-  done
-
-  for git_repo in $(ls -d *.git 2>/dev/null);
-  do
-    blacklist-check "$git_repo"
-    if [ $? -eq 0 ]; then
-      echo "****git:$git_repo"
-      cd $git_repo && git fetch && git gc
-      cd $WD
-    else
-      echo "****skip $git_repo"
-    fi
-  done
-
-  for svn_repo in $(ls -d *-svn 2>/dev/null);
-  do
-    blacklist-check "$svn_repo"
-    if [ $? -eq 0 ]; then
-      echo "****svn:$svn_repo"
-      cd $svn_repo && svn update
-      cd $WD
-    else
-      echo "****skip $svn_repo"
-    fi
-  done
-
-  for cvs_repo in $(ls -d *-cvs 2>/dev/null);
-  do
-    blacklist-check "$cvs_repo"
-    if [ $? -eq 0 ]; then
-      echo "****cvs:$cvs_repo"
-      cd $cvs_repo && cvs update
-      cd $WD
-    else
-      echo "****skip $cvs_repo"
-    fi
-  done
-
-  for darcs_repo in $(ls -d *-darcs 2>/dev/null);
-  do
-    blacklist-check "$darcs_repo"
-    if [ $? -eq 0 ]; then
-      echo "****darcs:$darcs_repo"
-      cd $darcs_repo && darcs pull
-      cd $WD
-    else
-      echo "****skip $darcs_repo"
-    fi
-  done
-
-  echo "finished@ $(date)" >>pullall.history
-  echo "finished@ $(date)"
+  echo "finished@ $(date)" | tee -a pullall.history
 
 ) 9>/tmp/pullall.lock
 
