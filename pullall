@@ -1,6 +1,6 @@
 #!/bin/bash
-#copyright 2012 Wu Xingbo <wuxb45@gmail.com>
-#pullall: pull from git/hg/svn/cvs/darcs repository.
+#copyright 2012, 2015 Wu, Xingbo <wuxb45@gmail.com>
+#pullall: pull from git/hg/svn repositories.
 
 blacklist=$(cat pullall.blacklist 2>/dev/null)
 WD=$(pwd)
