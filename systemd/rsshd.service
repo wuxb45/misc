@@ -1,0 +1,16 @@
+[Unit]
+Description=SSH reverse mapping from <target>:<port> to localhost
+After=network.target
+
+[Service]
+# TODO: Please change <target> and <port> with your settings before use.
+ExecStart=/usr/bin/ssh -N -R localhost:<port>:localhost:22 <target>
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=always
+# TODO: Please set user before use.
+User=
+Group=
+
+[Install]
+WantedBy=multi-user.target
