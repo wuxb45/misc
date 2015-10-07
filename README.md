@@ -62,7 +62,7 @@ Droid0 Sans Mono
 --------
 "Droid-Zero Sans Mono"
 
-Droid Sans Mono font is great, but 0 (Zero) and O (a Capital Charactor)
+Droid Sans Mono font is great, but 0 (Zero) and O (a Capital Character)
 is hard to identify. I Just add a dot inside 0 (the Zero). make it clear.
 
 **install:
