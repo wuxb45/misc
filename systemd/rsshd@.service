@@ -3,16 +3,16 @@ Description=SSH reverse mapping from <target>:%i to localhost
 After=network.target
 
 [Service]
-#### TODO: Set <target> before use.
 ExecStart=/usr/bin/ssh -N -R localhost:%i:localhost:22 <target>
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
 Restart=always
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
 
 # install:
 #   copy this file to "~/.config/systemd/user/sshd@.service".
-#   set <target> in this service file.
+# ! set <target> in this service file.
 #   systemctl --user enable rsshd@<port>
+#   sudo loginctl enable-linger <user>
