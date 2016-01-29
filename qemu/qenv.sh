@@ -17,8 +17,8 @@ else
   echo "## empty configuration"
 fi
 
-# local_id=0-n
-# display=none
+# local_id=<number>
+# display={none|vnc|...}
 gen_display()
 {
   local _local_id=${local_id:-0}
@@ -29,8 +29,8 @@ gen_display()
   fi
 }
 
-# nr_cpus=1-n
-# mem_size=1M,1G
+# nr_cpus=<number>
+# mem_size={?M|?G}
 gen_cpu_memory()
 {
   local _nr_cpus=${nr_cpus:-1}
@@ -38,7 +38,7 @@ gen_cpu_memory()
   echo "-smp ${_nr_cpus} -m ${_mem_size} -cpu host -machine accel=kvm -enable-kvm -daemonize "
 }
 
-# local_id=0-n
+# local_id=<number>
 gen_serial()
 {
   local _local_id=${local_id:-0}
@@ -46,18 +46,19 @@ gen_serial()
   echo "-serial telnet:localhost:$((10000 + ${_local_id})),server,nowait"
 }
 
-# local_id=0-n
+# local_id=<number>
 gen_monitor()
 {
   local _local_id=${local_id:-0}
   echo "-monitor telnet:localhost:$((20000 + ${_local_id})),server,nowait"
 }
 
-# bridge=br0
-# mac3=00-ff
-# mac4=00-ff
-# mac5=00-ff
-# mac6=00-ff
+# bridge=<bridge-name>
+# mac3={00..ff}
+# mac4={00..ff}
+# mac5={00..ff}
+# mac6={00..ff}
+# nic_model={virtio|e1000|...}
 gen_bridge()
 {
   if [[ -n ${bridge} ]]; then
@@ -70,6 +71,7 @@ gen_bridge()
   fi
 }
 
+# boot=[cdn]
 gen_boot()
 {
   if [[ -n ${boot} ]]; then
@@ -77,6 +79,7 @@ gen_boot()
   fi
 }
 
+# cdrom=<filename>
 gen_cdrom()
 {
   if [[ -n ${cdrom} ]]; then
@@ -84,16 +87,15 @@ gen_cdrom()
   fi
 }
 
-# main_img=
-# main_fmt=
+# main_img=<filename>
+# main_fmt={raw|qed|qcow2|...}
+# cache_mode[]={writeback|none|directsync|...}
+# aio_mode[]={native|threads}
 gen_disks()
 {
   for i in $(seq 0 4); do
     local cache=${cache_mode[${i}]:-writeback}
-    local aio="threads"
-    if [[ ${cache} == "none" || ${cache} == "directsync" ]]; then
-      aio="native"
-    fi
+    local aio=${aio_mode[${i}]:-native}
     if [[ -n ${base_img[${i}]} && -n ${base_fmt[${i}]} ]]; then
       if [[ -n ${cow_img[${i}]} && -n ${cow_fmt[${i}]} ]]; then
         echo "-drive file=${cow_img[${i}]},if=virtio,aio=${aio},discard=on,format=${cow_fmt[${i}]},cache=${cache} "
@@ -104,11 +106,11 @@ gen_disks()
   done
 }
 
-# base_img[]
-# base_fmt[]
-# base_cap[]
-# cow_img[]
-# cow_fmt[]
+# base_img[]=<filename>
+# base_fmt[]={raw|qed|qcow2|...}
+# base_cap[]={?G|?M}
+# cow_img[]=<filename>
+# cow_fmt[]={qed|qcow2|...}
 touch_imgs()
 {
   for i in $(seq 0 4); do
@@ -133,12 +135,16 @@ touch_imgs()
   done
 }
 
+# qemu_binary=<executable>
 gen_sys()
 {
   local _qemu_binary=${qemu_binary:-qemu-system-x86_64}
   echo ${_qemu_binary} -nodefaults $(gen_display) $(gen_cpu_memory) $(gen_serial) $(gen_monitor) $(gen_bridge) $(gen_cdrom) $(gen_disks) $(gen_boot)
 }
 
+# kernel=<filename>
+# initrd=<filename>
+# append=<string>
 run_sys()
 {
   touch_imgs
