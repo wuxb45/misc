@@ -35,7 +35,7 @@ if [[ $1 ]]; then
   echo get ids!
   get_ids_of_page "$1"
 else
-  echo download then!
+  echo download them!
   for id in $(cat ids); do
     get_pdf_by_id $id
   done
