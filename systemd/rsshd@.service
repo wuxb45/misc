@@ -1,11 +1,13 @@
 [Unit]
-Description=SSH reverse mapping from <target>:%i to localhost
+Description=SSH reverse mapping from a remote host to local host
 Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/ssh -N -R localhost:%i:localhost:22 <target>
+EnvironmentFile=%h/.ssh/rsshd@%i.conf
+ExecStart=/usr/bin/ssh -N -R ${rhost}:${rport}:${lhost}:${lport} ${remote}
 ExecReload=/bin/kill -HUP $MAINPID
+
 KillMode=process
 Restart=always
 RestartSec=5
@@ -14,7 +16,7 @@ RestartSec=5
 WantedBy=default.target
 
 # install:
-#   copy this file to "~/.config/systemd/user/sshd@.service".
-# ! set <target> in this service file.
-#   systemctl --user enable rsshd@<port>
+#   copy this file to "~/.config/systemd/user/rsshd@.service".
+#   setup ${rhost}, ${rport}, ${remote}, ${lhost}, {lport} in "~/.ssh/rsshd@%i.conf"
+#   systemctl --user enable rsshd@%i
 #   sudo loginctl enable-linger <user>
