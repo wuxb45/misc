@@ -95,7 +95,7 @@ gen_disks()
 {
   for i in $(seq 0 4); do
     local cache=${cache_mode[${i}]:-writeback}
-    local aio=${aio_mode[${i}]:-native}
+    local aio=${aio_mode[${i}]:-threads}
     if [[ -n ${base_img[${i}]} && -n ${base_fmt[${i}]} ]]; then
       if [[ -n ${cow_img[${i}]} && -n ${cow_fmt[${i}]} ]]; then
         echo "-drive file=${cow_img[${i}]},if=virtio,aio=${aio},discard=on,format=${cow_fmt[${i}]},cache=${cache} "
