@@ -1,6 +1,5 @@
 #!/bin/bash
 MIROOT=/home/http/mirror
-
 echo "==start: $(date)" >>/tmp/rsyncdo.log
 syncdir()
 {
@@ -8,8 +7,8 @@ syncdir()
   local remote="rsync://${MRSITE}/${RPREFIX}${MRDIR}/"
   local localdir="${MIROOT}/${LPREFIX}${MRDIR}"
   mkdir -p ${localdir}
-  echo "SYNCDIR $@ ${remote} ${localdir}"
-  rsync -qrtLH --no-motd --delete-after --ignore-errors --timeout=10 --chown=http:http "$@" ${remote} ${localdir}
+  #rsync -rtLvH --delete-after --delay-updates --ignore-errors ${remote} ${localdir}
+  rsync -rtLH --delete-after --ignore-errors --chown=http:http "$@" ${remote} ${localdir}
 }
 
 ## archlinux
