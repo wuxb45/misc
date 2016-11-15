@@ -28,11 +28,8 @@ iptables_put_rule()
   fi
 }
 
-# allow br
-iptables_put_rule FORWARD -m physdev --physdev-is-bridged -j ACCEPT
-
 # allow nat in/out
-iptables_put_rule FORWARD -i ${outport} -o ${gateway} -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables_put_rule FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 iptables_put_rule FORWARD -i ${gateway} -o ${outport} -j ACCEPT
 
 # set NAT
