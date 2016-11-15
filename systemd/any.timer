@@ -1,0 +1,14 @@
+[Unit]
+# name it as the service's name and adjust times
+Description=Any Timer
+
+[Timer]
+# see systemd.time(7) manual page for other scheduling options
+# us/ms/s/m/h are OK
+OnBootSec=10min
+OnUnitActiveSec=2h
+# run immediately if we missed a backup for some reason
+Persistent=true
+
+[Install]
+WantedBy=timers.target

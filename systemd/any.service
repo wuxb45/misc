@@ -1,0 +1,8 @@
+[Unit]
+Description=Any Oneshot Task
+
+[Service]
+Type=oneshot
+#User=http
+#Group=http
+ExecStart=/bin/bash -c '/root/scripts/dothis > /tmp/dothis.log'

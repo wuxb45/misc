@@ -1,9 +1,17 @@
 [Unit]
+# install:
+#   copy this file to "~/.config/systemd/user/rsshd@.service".
+#   setup ${rhost}, ${rport}, ${remote}, ${lhost}, {lport} in "~/.ssh/rsshd@%i.conf"
+#   systemctl --user enable rsshd@%i
+#   sudo loginctl enable-linger <user>
+
 Description=SSH reverse mapping from a remote host to local host
 Wants=network-online.target
 After=network-online.target
 
 [Service]
+# port mapping explained: ${rhost}:${rport} on ${remote} will be forwarded to ${lhost}:${lport}
+# quick example for exporting sshd to jumper's localhost:2222: localhost:2222 jumper localhost:22
 EnvironmentFile=%h/.ssh/rsshd@%i.conf
 ExecStart=/usr/bin/ssh -N -R ${rhost}:${rport}:${lhost}:${lport} ${remote}
 ExecReload=/bin/kill -HUP $MAINPID
@@ -14,9 +22,3 @@ RestartSec=5
 
 [Install]
 WantedBy=default.target
-
-# install:
-#   copy this file to "~/.config/systemd/user/rsshd@.service".
-#   setup ${rhost}, ${rport}, ${remote}, ${lhost}, {lport} in "~/.ssh/rsshd@%i.conf"
-#   systemctl --user enable rsshd@%i
-#   sudo loginctl enable-linger <user>
