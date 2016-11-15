@@ -1,0 +1,14 @@
+#!/bin/bash
+
+print_help()
+{
+  echo "Usage : delladm <idrac-hostname> <idrac-action>"
+  echo "  idrac-actions: {graceshutdown, powerdown, powerup, powercycle, hardreset, powerstatus}"
+}
+
+if [[ $# -ne 2 ]]; then
+  print_help
+  exit 0
+fi
+
+ssh "ADMIN@${1}" racadm serveraction "${2}"

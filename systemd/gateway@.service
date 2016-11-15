@@ -1,18 +1,15 @@
 [Unit]
 Description=Gateway (%i)
 Wants=network.target
-Before=network.target
-BindsTo=sys-subsystem-net-devices-%i.device
-After=sys-subsystem-net-devices-%i.device
+After=network.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-EnvironmentFile=/etc/conf.d/gateway@%i
+EnvironmentFile=/etc/conf.d/gateway@%i.conf
 
-ExecStart=/root/scripts/gateway.sh ${gateway} ${outport}
-
-ExecStop=/root/scripts/waygate.sh ${gateway} ${outport}
+ExecStart=/root/scripts/gateway ${gateway} ${outport}
+ExecStop=/root/scripts/waygate ${gateway} ${outport}
 
 [Install]
 WantedBy=multi-user.target
