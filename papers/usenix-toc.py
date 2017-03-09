@@ -4,13 +4,16 @@ import re
 import sys
 import fileinput
 if len(sys.argv) < 3:
-  print("Generate: %s <toc-file> <page-shift>" % sys.argv[0])
+  print("Generate: %s <toc-file> <page-shift> [<full-pdf>]" % sys.argv[0])
   print("Export function: echo $(%s <toc-file> <page-shift>) | source /dev/stdin" % sys.argv[0])
   exit(0)
 
 re_pn = re.compile(r'^.*\. ?(\d+)$')
 
 shift=int(sys.argv[2])
+pdf = ""
+if len(sys.argv) >= 4:
+  pdf = sys.argv[3]
 
 i=100
 pn=0
@@ -29,10 +32,13 @@ with fileinput.input(files=(sys.argv[1])) as f:
           ln = fa.split(' ')[-1].lower()
           rec.append((pn, ln))
 
-print("usenix_split()\n{")
 head="  gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER -dNOPDFMARKS -dQUIET "
+cmds = []
 for i in range(0, len(rec) - 1):
-  print("%s -dFirstPage=%d -dLastPage=%d -sOutputFile=p%d-%s.pdf ${1};" % (head, rec[i][0] + shift, rec[i+1][0] - 1 + shift, rec[i][0], rec[i][1]))
+  cmds.append("%s -dFirstPage=%d -dLastPage=%d -sOutputFile=p%d-%s.pdf \"%s\";" % \
+    (head, rec[i][0] + shift, rec[i+1][0] - 1 + shift, rec[i][0], rec[i][1], pdf))
 
-print("%s -dFirstPage=%d -sOutputFile=p%d-%s.pdf ${1};" % (head, rec[-1][0] + shift, rec[-1][0], rec[-1][1]))
-print("}")
+cmds.append("%s -dFirstPage=%d -sOutputFile=p%d-%s.pdf ${1};" % (head, rec[-1][0] + shift, rec[-1][0], rec[-1][1]))
+
+for c in cmds:
+  print(c)
