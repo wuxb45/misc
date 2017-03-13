@@ -6,9 +6,11 @@ if [[ -z ${1} ]]; then
 fi
 
 wipefs -a -f -q /dev/${1}
-echo "o\nn\n\n\n\n\n\nw\n" | fdisk /dev/${1}
-
-mkfs.xfs /dev/${1}1
+#echo "o\nw\n" | fdisk /dev/${1}
+#partprobe
+echo 'start=2048, type=83' | sfdisk /dev/${1}
+partprobe
+mkfs.xfs -f /dev/${1}1
 mount /dev/${1}1 /mnt
 
 ./os1.sh "/mnt" ${1}
