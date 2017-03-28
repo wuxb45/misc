@@ -38,7 +38,8 @@ for i in range(0, len(rec) - 1):
   cmds.append("%s -dFirstPage=%d -dLastPage=%d -sOutputFile=p%d-%s.pdf \"%s\";" % \
     (head, rec[i][0] + shift, rec[i+1][0] - 1 + shift, rec[i][0], rec[i][1], pdf))
 
-cmds.append("%s -dFirstPage=%d -sOutputFile=p%d-%s.pdf ${1};" % (head, rec[-1][0] + shift, rec[-1][0], rec[-1][1]))
+cmds.append("%s -dFirstPage=%d -sOutputFile=p%d-%s.pdf \"%s\";" % \
+  (head, rec[-1][0] + shift, rec[-1][0], rec[-1][1], pdf))
 
 for c in cmds:
   print(c)
