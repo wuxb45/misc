@@ -27,6 +27,4 @@ bash-completion
 bc
 smartmontools
 dmidecode
-ntp
 lsof
-abs
