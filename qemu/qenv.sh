@@ -61,14 +61,17 @@ gen_monitor()
 # nic_model={virtio|e1000|...}
 gen_bridge()
 {
+  local _mac3=${mac3:-00}
+  local _mac4=${mac4:-00}
+  local _mac5=${mac5:-00}
+  local _mac6=${mac6:-00}
+  local _model=${nic_model:-virtio}
+  local _nic=" -net nic,model=${_model},macaddr=52:54:${_mac3}:${_mac4}:${_mac5}:${_mac6} "
+  local _switch=" -net user "
   if [[ -n ${bridge} ]]; then
-    local _mac3=${mac3:-00}
-    local _mac4=${mac4:-00}
-    local _mac5=${mac5:-00}
-    local _mac6=${mac6:-00}
-    local _model=${nic_model:-virtio}
-    echo "-net bridge,br=${bridge} -net nic,model=${_model},macaddr=52:54:${_mac3}:${_mac4}:${_mac5}:${_mac6} "
+    _switch="-net bridge,br=${bridge}"
   fi
+  echo " ${_nic} ${_switch} "
 }
 
 # boot=[cdn]
@@ -135,11 +138,50 @@ touch_imgs()
   done
 }
 
+# xrootimg=<root-fs-image>
+# extract kernel files from the root image
+# on success, set ${kernel} and ${initrd}
+xkernel()
+{
+  if [[ -n ${xrootimg} ]]; then
+    KERNEL=/tmp/.qemu.kernel.$$
+    INITRD=/tmp/.qemu.ramfs.$$
+    rm -f ${KERNEL} ${INITRD}
+
+    # gen kernel and ramfs
+    TMPROOT=/tmp/.$$.rootfs
+    mkdir -p ${TMPROOT}
+    sudo mount ${xrootimg} ${TMPROOT}
+    cp ${TMPROOT}/boot/vmlinuz-linux                ${KERNEL}
+    cp ${TMPROOT}/boot/initramfs-linux-fallback.img ${INITRD}
+    sudo umount ${TMPROOT}
+    rm -r ${TMPROOT}
+
+    # check if we really have kernel and initrd
+    if [[ -f ${KERNEL} ]]; then
+      kernel=${KERNEL}
+    fi
+    if [[ -f ${INITRD} ]]; then
+      initrd=${INITRD}
+    fi
+  fi
+}
+
 # qemu_binary=<executable>
-gen_sys()
+gen_common()
 {
   local _qemu_binary=${qemu_binary:-qemu-system-x86_64}
   echo ${_qemu_binary} -nodefaults $(gen_display) $(gen_cpu_memory) $(gen_serial) $(gen_monitor) $(gen_bridge) $(gen_cdrom) $(gen_disks) $(gen_boot)
+}
+
+gen_sys()
+{
+  xkernel # check and try to extract kernel and initrd
+  if [[ -n "${kernel}" && -n "${initrd}" && -n "${append}" ]]; then
+    echo $(gen_common) -kernel "${kernel}" -initrd "${initrd}" -append "${append}"
+  else
+    echo $(gen_common)
+  fi
 }
 
 # kernel=<filename>
@@ -152,11 +194,12 @@ run_sys()
     echo "touch_cow failed!"
     return $?
   fi
+  xkernel # check and try to extract kernel and initrd
   # need special treatment for append. SHIT!
   if [[ -n "${kernel}" && -n "${initrd}" && -n "${append}" ]]; then
-    $(gen_sys) -kernel "${kernel}" -initrd "${initrd}" -append "${append}"
+    $(gen_common) -kernel "${kernel}" -initrd "${initrd}" -append "${append}"
   else
-    $(gen_sys)
+    $(gen_common)
   fi
 }
 
