@@ -24,8 +24,10 @@ get_acm_pdf_by_id()
 }
 
 # main
-if [[ -n ${1} ]]; then
-  get_acm_pdf_by_id ${1}
+if [[ $# -eq 0 ]]; then
+  echo "Usage $0 [<id> ...]"
 else
-  echo "usage $0 <id>"
+  for id in ${@}; do
+    get_acm_pdf_by_id ${id}
+  done
 fi
