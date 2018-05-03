@@ -22,6 +22,7 @@ get_acm_pdf_by_id()
     fi
     rm ${pagefile}
   fi
+  sleep 10
 }
 
 get_all()
