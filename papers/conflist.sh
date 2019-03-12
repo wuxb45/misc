@@ -12,7 +12,7 @@ uids=(131 179 178 146 155 159)
 for x in $(seq 0 5); do
   echo '<a href="https://www.usenix.org/conferences/byname/'${uids[$x]}'">'${unames[$x]}'</a>'
 done
-  echo "<br /><br />"
+  echo "<br />"
 ) >>${output}
 
 # some independent confs
@@ -20,6 +20,7 @@ done
   echo '
   Indes:
 <a href="https://www.vldb.org/pvldb/index.html">PVLDB</a>
+  <br />
   '
 ) >>${output}
 
@@ -37,6 +38,6 @@ keys=(SOSP ASPLOS EuroSys "SoCC|SOCC" SIGMETRICS SIGMOD SYSTOR ISCA MICRO PLDI P
 for key in ${keys[@]}; do
   egrep "\"${key}" original.html | head -n 6 | \
     sed -e 's/^.*id=\([0-9]*\)".*title="\(.*\)">.*<.a>.*$/<a href="https:\/\/dl.acm.org\/citation.cfm\?id=\1">\2<\/a>/'
-  echo "<br /><br />"
+  echo "<br />"
 done
 ) >>${output}
