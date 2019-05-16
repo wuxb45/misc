@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+sudo killall -q -s SIGINT openconnect
+# suppose vpnexpect is in the $PATH
+nohup sudo vpnexpect 1>/dev/null 2>/dev/null &
+disown

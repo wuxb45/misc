@@ -1,0 +1,8 @@
+#!/usr/bin/expect
+set timeout -1
+spawn -ignore HUP openconnect --authgroup=General-Use -u yourusername https://vpn.uic.edu
+expect "Password:" { send "yourpassword\r" }
+expect "Password:" { send "push\r" }
+expect "Continuing*"
+expect_background
+interact
