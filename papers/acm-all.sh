@@ -7,20 +7,20 @@ get_acm_pdf_by_id()
 {
   id=${1}
   pagefile=${id}.page
-  pdffile=${id}.pdf
-  if [[ -f $pdffile ]]; then
-    echo pass ${pdffile}!
+  donefile=${id}.done
+  if [[ -f ${donefile} ]]; then
+    echo skip ${id}!
     return 0
   else
     pageurl="http://dl.acm.org/citation.cfm?id=$id"
-    wget $wgetopts $pageurl -O ${pagefile}
+    wget ${wgetopts} ${pageurl} -O ${pagefile}
     suffix=$(grep 'ft_gateway' ${pagefile} | sed -n -e 's/^.*href="\(.*\)" target.*$/\1/p')
-    if [[ -n $suffix ]]; then
+    if [[ -n ${suffix} ]]; then
       pdfurl="http://dl.acm.org/${suffix}"
-      echo "download ${pdffile} ${pdfurl}"
-      wget ${wgetopts} "${pdfurl}" -O ${pdffile}
+      echo "download ${id} ${pdfurl}"
+      wget ${wgetopts} --content-disposition "${pdfurl}"
+      touch ${donefile}
     fi
-    rm ${pagefile}
   fi
   sleep 10
 }
@@ -36,6 +36,7 @@ get_all()
   for id in $(cat ${ids}); do
     get_acm_pdf_by_id ${id}
   done
+  echo "Remove all .done files once finished; use rename-acm.sh"
 }
 
 # main

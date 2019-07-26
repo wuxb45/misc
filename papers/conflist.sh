@@ -33,7 +33,7 @@ indexurl="https://dl.acm.org/proceedings.cfm"
 # fetch today's list
 wget ${wgetopts} ${indexurl} -O original.html
 
-keys=(SOSP ASPLOS EuroSys "SoCC|SOCC" SIGMETRICS SIGMOD SYSTOR ISCA MICRO PLDI POPL SIGCOMM CGO CoNEXT HPDC ISMM PACT PODC SPAA VEE)
+keys=(SOSP ASPLOS EuroSys "SoCC|SOCC" SIGMETRICS SIGMOD SYSTOR ISCA MICRO SC ICS HPDC PLDI POPL ICFP SIGCOMM ISMM PACT PODC SPAA VEE)
 (
 for key in ${keys[@]}; do
   egrep "\"${key}" original.html | head -n 6 | \
