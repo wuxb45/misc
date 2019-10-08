@@ -1,19 +1,19 @@
 [Unit]
 # install:
 #   copy this file to "~/.config/systemd/user/rsshd@.service".
-#   setup ${rhost}, ${rport}, ${remote}, ${lhost}, {lport} in "~/.ssh/rsshd@%i.conf"
-#   systemctl --user enable rsshd@%i
-#   sudo loginctl enable-linger <user>
+#   setup rhost, rport, thost, tport, lhost, lport in "~/.ssh/rsshd@%i.conf" (replace %i with any name you want)
+#   systemctl --user enable rsshd@%i     # (replace %i with any name you want)
+#   sudo loginctl enable-linger <user>   # replace with your user name
+#   current systemd has a bug with linger user. do this instead: $ sudo touch /var/lib/systemd/linger/<user>
 
 Description=SSH reverse mapping from a remote host to local host
 Wants=network-online.target
 After=network-online.target
 
 [Service]
-# port mapping explained: ${rhost}:${rport} on ${remote} will be forwarded to ${lhost}:${lport}
-# quick example for exporting sshd to jumper's localhost:2222: localhost:2222 jumper localhost:22
+# port mapping explained: ${rhost}:${rport} on ${thost}:${tport} will be forwarded to ${lhost}:${lport}
 EnvironmentFile=%h/.ssh/rsshd@%i.conf
-ExecStart=/usr/bin/ssh -N -R ${rhost}:${rport}:${lhost}:${lport} ${remote}
+ExecStart=/usr/bin/ssh -N -R ${rhost}:${rport}:${lhost}:${lport} ${thost} -p ${tport}
 ExecReload=/bin/kill -HUP $MAINPID
 
 KillMode=process
