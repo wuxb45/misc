@@ -1,0 +1,39 @@
+# Maintainer: Dave Reisner <dreisner@archlinux.org>
+# Contributor: feydaykyn <feydaykyn@yahoo.fr>
+
+pkgname=leveldb
+pkgver=1.22
+pkgrel=1
+pkgdesc="A fast and lightweight key/value database library"
+arch=('x86_64')
+url="https://github.com/google/leveldb"
+license=('BSD')
+depends=('snappy')
+makedepends=('cmake')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/google/leveldb/archive/$pkgver.tar.gz")
+sha1sums=('SKIP')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+  # disable tcmalloc the hard way
+  sed -i '/tcmalloc/d' CMakeLists.txt
+}
+
+build() {
+  mkdir "$pkgname-$pkgver/build"
+  cd "$pkgname-$pkgver/build"
+
+  cmake \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=lib \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_SHARED_LIBS=1 \
+    ..
+
+  make
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  make -C build DESTDIR="$pkgdir" install
+}
