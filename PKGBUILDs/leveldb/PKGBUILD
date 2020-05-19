@@ -1,27 +1,28 @@
 # Maintainer: Dave Reisner <dreisner@archlinux.org>
 # Contributor: feydaykyn <feydaykyn@yahoo.fr>
 
-pkgname=leveldb
+pkgname=leveldb-nodep
 pkgver=1.22
 pkgrel=1
 pkgdesc="A fast and lightweight key/value database library"
 arch=('x86_64')
 url="https://github.com/google/leveldb"
 license=('BSD')
-depends=('snappy')
+provides=('leveldb')
+conflicts=('leveldb')
 makedepends=('cmake')
-source=("$pkgname-$pkgver.tar.gz::https://github.com/google/leveldb/archive/$pkgver.tar.gz")
+source=("leveldb-$pkgver.tar.gz::https://github.com/google/leveldb/archive/$pkgver.tar.gz")
 sha1sums=('SKIP')
 
 prepare() {
-  cd "$pkgname-$pkgver"
+  cd "leveldb-$pkgver"
   # disable tcmalloc the hard way
-  sed -i '/tcmalloc/d' CMakeLists.txt
+  sed -i -e '/tcmalloc/d' -e '/snappy/d' CMakeLists.txt
 }
 
 build() {
-  mkdir "$pkgname-$pkgver/build"
-  cd "$pkgname-$pkgver/build"
+  mkdir "leveldb-$pkgver/build"
+  cd "leveldb-$pkgver/build"
 
   cmake \
     -DCMAKE_INSTALL_PREFIX=/usr \
@@ -34,6 +35,6 @@ build() {
 }
 
 package() {
-  cd "$pkgname-$pkgver"
+  cd "leveldb-$pkgver"
   make -C build DESTDIR="$pkgdir" install
 }

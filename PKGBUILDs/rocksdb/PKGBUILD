@@ -1,14 +1,16 @@
 # Maintainer: Anatol Pomozov
 # Contributor: László Várady <laszlo.varady93@gmail.com>
 
-pkgname=rocksdb
+pkgname=rocksdb-nodep
 pkgver=6.7.3
 pkgrel=1
 pkgdesc='Embedded key-value store for fast storage'
 arch=(x86_64)
 url="https://rocksdb.org/"
 license=(GPL2 Apache)
-depends=(gcc-libs snappy)
+depends=(gcc-libs)
+provides=('rocksdb')
+conflicts=('rocksdb')
 makedepends=(cmake ninja)
 source=(rocksdb-$pkgver.tar.gz::https://github.com/facebook/rocksdb/archive/v$pkgver.tar.gz)
 sha256sums=('SKIP')
@@ -16,7 +18,7 @@ sha256sums=('SKIP')
 build() {
   cd rocksdb-$pkgver
   cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib \
-        -DWITH_SNAPPY=ON -DWITH_GFLAGS=OFF -DFAIL_ON_WARNINGS=OFF -DPORTABLE=ON \
+        -DWITH_GFLAGS=OFF -DFAIL_ON_WARNINGS=OFF -DPORTABLE=ON \
 	-DWITH_BENCHMARK_TOOLS=OFF \
 	-GNinja -S . -B build
   ninja -C build
