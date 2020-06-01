@@ -2,13 +2,13 @@
 # Contributor: László Várady <laszlo.varady93@gmail.com>
 
 pkgname=rocksdb-nodep
-pkgver=6.7.3
+pkgver=6.10.1
 pkgrel=1
 pkgdesc='Embedded key-value store for fast storage'
 arch=(x86_64)
 url="https://rocksdb.org/"
 license=(GPL2 Apache)
-depends=(gcc-libs)
+depends=('gcc-libs' 'gflags')
 provides=('rocksdb')
 conflicts=('rocksdb')
 makedepends=(cmake ninja)
@@ -17,9 +17,10 @@ sha256sums=('SKIP')
 
 build() {
   cd rocksdb-$pkgver
+  sed -i -e '/table_reader_bench/,+4d' CMakeLists.txt
   cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib \
-        -DWITH_GFLAGS=OFF -DFAIL_ON_WARNINGS=OFF -DPORTABLE=ON \
-	-DWITH_BENCHMARK_TOOLS=OFF \
+        -DWITH_GFLAGS=ON -DFAIL_ON_WARNINGS=OFF -DPORTABLE=ON \
+	-DWITH_BENCHMARK_TOOLS=ON \
 	-GNinja -S . -B build
   ninja -C build
 }
@@ -27,4 +28,8 @@ build() {
 package() {
   cd rocksdb-$pkgver
   DESTDIR="$pkgdir" ninja -C build install
+  mkdir -p $pkgdir/usr/bin
+  for bin in db_bench cache_bench memtablerep_bench range_del_aggregator_bench filter_bench hash_table_bench; do
+    install -m 00755 -t $pkgdir/usr/bin build/$bin
+  done
 }
