@@ -2,7 +2,7 @@
 # Contributor: László Várady <laszlo.varady93@gmail.com>
 
 pkgname=rocksdb-nodep
-pkgver=6.10.1
+pkgver=6.10.2
 pkgrel=1
 pkgdesc='Embedded key-value store for fast storage'
 arch=(x86_64)
