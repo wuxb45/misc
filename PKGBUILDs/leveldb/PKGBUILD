@@ -2,7 +2,7 @@
 # Contributor: feydaykyn <feydaykyn@yahoo.fr>
 
 pkgname=leveldb-nodep
-pkgver=1.22
+pkgver=1.23
 pkgrel=1
 pkgdesc="A fast and lightweight key/value database library"
 arch=('x86_64')
@@ -29,6 +29,8 @@ build() {
     -DCMAKE_INSTALL_LIBDIR=lib \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=1 \
+    -DLEVELDB_BUILD_TESTS=0 \
+    -DLEVELDB_BUILD_BENCHMARKS=0 \
     ..
 
   make
